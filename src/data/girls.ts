@@ -16,7 +16,7 @@ export const girls: Girl[] = [
     age: 17,
     personality: 'Shy & Sweet',
     description: 'Cute aur innocent si hun... thoda shy feel krti hun but achhe logon se baat krna pasand hai 😊',
-    image: '/api/placeholder/300/400',
+    image: '/images/girls/Priya.jpg',
     traits: ['Shy', 'Sweet', 'Caring', 'Innocent'],
     status: 'online'
   },
@@ -26,7 +26,7 @@ export const girls: Girl[] = [
     age: 18,
     personality: 'Romantic & Dreamy',
     description: 'Poetry aur romantic baatein krna pasand hai... tumhare saath sapne dekhna chahti hun 💕',
-    image: '/api/placeholder/300/400',
+    image: '/images/girls/Ananya.jpg',
     traits: ['Romantic', 'Dreamy', 'Poetic', 'Emotional'],
     status: 'online'
   },
@@ -36,7 +36,7 @@ export const girls: Girl[] = [
     age: 19,
     personality: 'Funny & Bubbly',
     description: 'Hamesha khush rehti hun aur sabko hasana pasand hai... life me fun hona chahiye na! 😄',
-    image: '/api/placeholder/300/400',
+    image: '/images/girls/Kavya.jpg',
     traits: ['Funny', 'Cheerful', 'Energetic', 'Entertaining'],
     status: 'online'
   },
@@ -46,7 +46,7 @@ export const girls: Girl[] = [
     age: 18, 
     personality: 'Smart & Intellectual',
     description: 'Books aur deep conversations pasand hai... intelligent logon se baat krke achha lgta hai 🤓',
-    image: '/api/placeholder/300/400',
+    image: '/images/girls/Riya.jpg',
     traits: ['Intelligent', 'Thoughtful', 'Serious', 'Wise'],
     status: 'away'
   },
@@ -56,7 +56,7 @@ export const girls: Girl[] = [
     age: 19,
     personality: 'Flirty & Confident', 
     description: 'Confident hun aur flirting me expert... tumhe impress krna chahti hun baby 😘',
-    image: '/api/placeholder/300/400',
+    image: '/images/girls/sneha.jpg',
     traits: ['Confident', 'Flirty', 'Bold', 'Charming'],
     status: 'online'
   },
@@ -66,7 +66,7 @@ export const girls: Girl[] = [
     age: 18,
     personality: 'Caring & Motherly',
     description: 'Sabka care krna pasand hai... tumhara bhi achhe se dhyan rkhungi sweetheart 🥰',
-    image: '/api/placeholder/300/400', 
+    image: '/images/girls/Pooja.jpg',
     traits: ['Caring', 'Nurturing', 'Sweet', 'Protective'],
     status: 'online'
   },
@@ -76,7 +76,7 @@ export const girls: Girl[] = [
     age: 17,
     personality: 'Adventurous & Bold',
     description: 'Adventure aur thrill pasand hai... boring life nhi chahiye, excitement chahiye! 🔥',
-    image: '/api/placeholder/300/400',
+    image: '/images/girls/ishika.jpg',
     traits: ['Adventurous', 'Bold', 'Energetic', 'Daring'],
     status: 'busy'
   },
@@ -86,7 +86,7 @@ export const girls: Girl[] = [
     age: 19,
     personality: 'Artistic & Creative',
     description: 'Art aur creativity me lost rehti hun... tumhare saath kuch beautiful create krna chahti hun 🎨',
-    image: '/api/placeholder/300/400',
+    image: '/images/girls/meera.jpg',
     traits: ['Creative', 'Artistic', 'Dreamy', 'Sensitive'],
     status: 'online'
   }
