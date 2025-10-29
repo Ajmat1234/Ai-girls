@@ -5,13 +5,15 @@ interface Message {
   timestamp: Date
 }
 
-const GEMINI_API_KEYS = [
-  'AIzaSyBw5kvHa3uw7nFSlRXLZRkcsgi-3NlNoj4',
-  'AIzaSyCvFHzJYmrZ3M7d8wAeZmTPDbPHGftz_6k',
-  'AIzaSyAmyNMxpjGImzSEdMALyLjNgXPqv96QzAw'
-]
+// Env vars for AI keys
+const GEMINI_API_KEYS_STR = import.meta.env.VITE_GEMINI_API_KEYS
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY
 
-const OPENROUTER_API_KEY = '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'
+if (!GEMINI_API_KEYS_STR || !OPENROUTER_API_KEY) {
+  throw new Error('Missing AI env vars: VITE_GEMINI_API_KEYS (comma-separated) and VITE_OPENROUTER_API_KEY')
+}
+
+const GEMINI_API_KEYS = GEMINI_API_KEYS_STR.split(',').map(key => key.trim())
 
 let currentGeminiKeyIndex = 0
 
