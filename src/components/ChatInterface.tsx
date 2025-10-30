@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Send, Image, Video, ArrowLeft, MoreVertical, Smile, Moon, Sun } from 'lucide-react'
+import { Send, Image, Video, ArrowLeft, MoreVertical, Smile, Moon, Sun, Share2 } from 'lucide-react'
+import { motion } from 'framer-motion'  // For butterfly
 import { useNavigate } from 'react-router-dom'
 import { Girl } from '@/data/girls'
 import { useChat } from '@/hooks/useChat'
@@ -22,6 +23,56 @@ interface Message {
   status?: 'sent' | 'delivered' | 'read'
 }
 
+// Butterfly Component (तेरा code integrated)
+const Butterfly = () => {
+  const [positions, setPositions] = useState([{
+    x: Math.random() * window.innerWidth - window.innerWidth / 2,
+    y: Math.random() * window.innerHeight - window.innerHeight / 2,
+  }])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPositions(prev => [...prev.slice(-3), {
+        x: Math.random() * window.innerWidth - window.innerWidth / 2,
+        y: Math.random() * window.innerHeight - window.innerHeight / 2,
+      }])
+    }, 1500)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  const randomTime = () => 4 + Math.random() * 4
+
+  return (
+    <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
+      {positions.map((pos, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ 
+            x: pos.x, 
+            y: pos.y,
+            opacity: 1, 
+            scale: 1 
+          }}
+          transition={{ duration: randomTime(), ease: "easeInOut" }}
+          className="absolute"
+        >
+          <div className="text-3xl animate-pulse">🦋</div>
+          <motion.div
+            className="absolute left-1/2 top-full -translate-x-1/2 text-pink-400 dark:text-purple-400"
+            initial={{ opacity: 1, scale: 1 }}
+            animate={{ opacity: 0, scale: 0 }}
+            transition={{ duration: 1.8, ease: "easeOut" }}
+          >
+            ✨
+          </motion.div>
+        </motion.div>
+      ))}
+    </div>
+  )
+}
+
 export default function ChatInterface({ girl }: ChatInterfaceProps) {
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -34,9 +85,19 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
   const [showEmoji, setShowEmoji] = useState(false)
 
   useEffect(() => {
+    const savedTheme = localStorage.getItem('theme')
+    const dark = savedTheme === 'dark'
+    setIsDark(dark)
+    document.documentElement.classList.toggle('dark', dark)
     scrollToBottom()
-    document.documentElement.classList.toggle('dark', isDark)
-  }, [messages, isTyping, isDark])
+  }, [messages, isTyping])
+
+  const toggleDarkMode = () => {
+    const newDark = !isDark
+    setIsDark(newDark)
+    document.documentElement.classList.toggle('dark', newDark)
+    localStorage.setItem('theme', newDark ? 'dark' : 'light')
+  }
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -76,6 +137,24 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
     }
   }
 
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Chat with ${girl.name}`,
+          text: messages.slice(-5).map(m => `${m.sender}: ${m.text}`).join('\n'),  // Last 5 messages as text
+        })
+      } catch (error) {
+        console.error('Share failed', error)
+      }
+    } else {
+      // Fallback: Copy to clipboard or alert
+      navigator.clipboard.writeText(`Chat with ${girl.name}\n${messages.slice(-5).map(m => `${m.sender}: ${m.text}`).join('\n')}`)
+        .then(() => alert('Chat copied to clipboard!'))
+        .catch(() => alert('Share not supported'))
+    }
+  }
+
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('en-US', { 
       hour: '2-digit', 
@@ -95,8 +174,8 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
 
   const getBubbleClass = (sender: 'user' | 'ai', isDark: boolean) => {
     return sender === 'user'
-      ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg rounded-2xl rounded-br-md'
-      : isDark ? 'bg-gray-700 text-white shadow-lg rounded-2xl rounded-bl-md' : 'bg-white shadow-sm border rounded-2xl rounded-bl-md'
+      ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg rounded-3xl rounded-br-md'
+      : isDark ? 'bg-gray-700 text-white shadow-lg rounded-3xl rounded-bl-md' : 'bg-white shadow-sm border rounded-3xl rounded-bl-md'
   }
 
   const renderMessageText = (text: string) => {
@@ -113,8 +192,10 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
   }
 
   return (
-    <div className={`flex flex-col h-screen ${isDark ? 'dark bg-gray-900' : 'bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50'}`}>
-      {/* Fixed Header - Never moves */}
+    <div className={`flex flex-col h-[100dvh] ${isDark ? 'dark bg-gray-900' : 'bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50'}`}>
+      <Butterfly />  {/* Butterfly animation added */}
+
+      {/* Fixed Header */}
       <header className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-b dark:border-gray-700 shadow-sm z-50">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
@@ -149,10 +230,18 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => setIsDark(!isDark)}
+                onClick={toggleDarkMode}
                 className="hover:bg-pink-100 dark:hover:bg-gray-700 p-2"
               >
                 {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleShare}
+                className="hover:bg-pink-100 dark:hover:bg-gray-700 p-2"
+              >
+                <Share2 className="w-5 h-5" />
               </Button>
               <Button variant="ghost" size="sm" className="hover:bg-pink-100 dark:hover:bg-gray-700 p-2">
                 <MoreVertical className="w-5 h-5" />
@@ -162,8 +251,8 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
         </div>
       </header>
 
-      {/* Scrollable Messages - Reserve space for header */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 pt-20 dark:bg-gray-900 pb-24">  {/* pt-20 for header, pb-24 for input */}
+      {/* Scrollable Messages */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 pt-20 dark:bg-gray-900 pb-24 min-h-0">
         {messages.map((message: Message) => (
           <div
             key={message.id}
@@ -176,7 +265,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
                   <AvatarFallback>{girl.name.charAt(0)}</AvatarFallback>
                 </Avatar>
               )}
-              <div className={`p-3 rounded-2xl ${getBubbleClass(message.sender, isDark)} max-w-full break-words shadow-md`}>
+              <div className={`p-3 rounded-3xl ${getBubbleClass(message.sender, isDark)} max-w-full break-words shadow-md`}>
                 {message.type === 'image' ? (
                   <img src={message.text} alt="Image" className="max-w-full h-auto rounded-lg" loading="lazy" />
                 ) : (
@@ -203,7 +292,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
         
         {isTyping && (
           <div className="flex justify-start">
-            <div className={`p-3 rounded-2xl ${getBubbleClass('ai', isDark)} max-w-[75%] shadow-md`}>
+            <div className={`p-3 rounded-3xl ${getBubbleClass('ai', isDark)} max-w-[75%] shadow-md`}>
               <div className="flex space-x-1">
                 <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce"></div>
                 <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -231,7 +320,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
             
             {showEmoji && (
               <div className="absolute bottom-20 left-4 bg-white dark:bg-gray-800 border rounded-lg p-2 shadow-lg z-30 flex flex-wrap gap-1 max-w-xs">
-                {['😊', '😂', '❤️', '👍', '🔥'].map(emoji => (
+                {['😊', '😂', '❤️', '👍', '🔥', '😘', '💃', '❤️‍🔥', '😠'].map(emoji => (  // More emojis: kiss, dance, romantic, angry, laugh, smile
                   <button key={emoji} onClick={() => insertEmoji(emoji)} className="text-2xl hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded">
                     {emoji}
                   </button>
@@ -292,4 +381,4 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       </footer>
     </div>
   )
-                                        }
+}
