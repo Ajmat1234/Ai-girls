@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Send, Image, Video, ArrowLeft, MoreVertical, Smile, Moon, Sun, Share2 } from 'lucide-react'
-import { motion } from 'framer-motion'  // For typing particles
+import { motion, AnimatePresence } from 'framer-motion'  // Fixed: AnimatePresence imported
 import { useNavigate } from 'react-router-dom'
 import { Girl } from '@/data/girls'
 import { useChat } from '@/hooks/useChat'
@@ -23,54 +23,6 @@ interface Message {
   status?: 'sent' | 'delivered' | 'read'
 }
 
-// Aura Glow Function (ChatGPT's code)
-const getAuraColor = (status: string, isDark: boolean) => {
-  switch (status) {
-    case 'online': return isDark ? 'shadow-[0_0_18px_4px_rgba(0,255,100,0.7)]' : 'shadow-[0_0_18px_4px_rgba(0,255,100,0.9)]'
-    case 'busy': return isDark ? 'shadow-[0_0_18px_4px_rgba(255,0,80,0.7)]' : 'shadow-[0_0_18px_4px_rgba(255,0,80,0.9)]'
-    case 'away': return isDark ? 'shadow-[0_0_18px_4px_rgba(255,220,0,0.7)]' : 'shadow-[0_0_18px_4px_rgba(255,220,0,0.9)]'
-    default: return isDark ? 'shadow-[0_0_18px_4px_rgba(180,180,180,0.4)]' : 'shadow-[0_0_18px_4px_rgba(180,180,180,0.5)]'
-  }
-}
-
-// Typing Particles Component (pink sparkles orbit)
-const TypingParticles = ({ isTyping }: { isTyping: boolean }) => (
-  <AnimatePresence>
-    {isTyping && (
-      <motion.div
-        className="absolute inset-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-      >
-        {[...Array(6)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute text-pink-400 dark:text-purple-400 text-2xl"
-            style={{
-              left: '50%',
-              top: '50%',
-              x: Math.cos((i / 6) * Math.PI * 2) * 40,
-              y: Math.sin((i / 6) * Math.PI * 2) * 40,
-            }}
-            animate={{
-              rotate: 360,
-              scale: [1, 1.5, 1],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              delay: i * 0.1,
-            }}
-          >
-            ✨
-          </motion.div>
-        ))}
-      </motion.div>
-    )}
-  </AnimatePresence>
-)
-
 export default function ChatInterface({ girl }: ChatInterfaceProps) {
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -81,6 +33,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [showEmoji, setShowEmoji] = useState(false)
+  const [animatedMessages, setAnimatedMessages] = useState(new Set<string>())
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme')
@@ -89,6 +42,20 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
     document.documentElement.classList.toggle('dark', dark)
     scrollToBottom()
   }, [messages, isTyping])
+
+  // Emoji Animation Detection
+  useEffect(() => {
+    messages.forEach((message) => {
+      if (message.sender === 'ai' && message.type === 'text' && !animatedMessages.has(message.id)) {
+        const emojiMatch = message.text.match(/[\u{1F600}-\u{1F64F}]/gu)
+        if (emojiMatch) {
+          setTimeout(() => {
+            setAnimatedMessages(prev => new Set([...prev, message.id]))
+          }, 1000)
+        }
+      }
+    })
+  }, [messages])
 
   const toggleDarkMode = () => {
     const newDark = !isDark
@@ -125,8 +92,8 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
     setIsUploading(true)
     try {
       const imageUrl = await uploadImage(file, user.username)
-      if (imageUrl && sendImageMessage) {
-        await sendImageMessage(imageUrl)
+      if (imageUrl && sendMessage) {
+        await sendMessage(imageUrl)
       }
     } catch (error) {
       console.error('Error uploading file:', error)
@@ -188,9 +155,57 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
     setShowEmoji(false)
   }
 
+  // Emoji Animation Component
+  const EmojiAnimation = ({ messageId, emoji, x, y }: { messageId: string; emoji: string; x: number; y: number }) => (
+    <AnimatePresence>
+      <motion.div
+        key={messageId}
+        className="absolute z-10 pointer-events-none"
+        initial={{ scale: 0, opacity: 0, rotate: 0 }}
+        animate={{ scale: 1.5, opacity: 1, rotate: 360 }}
+        exit={{ scale: 0, opacity: 0 }}
+        transition={{ duration: 1, ease: "easeOut" }}
+        style={{ left: x, top: y }}
+      >
+        <span className="text-2xl">{emoji}</span>
+        {/* Particles based on emoji */}
+        {emoji === '😘' && (
+          <motion.div
+            className="absolute text-pink-400"
+            initial={{ y: 0, opacity: 1 }}
+            animate={{ y: -50, opacity: 0 }}
+            transition={{ duration: 1.5, delay: 0.5 }}
+          >
+            💖
+          </motion.div>
+        )}
+        {emoji === '😂' && (
+          <motion.div
+            className="absolute text-yellow-400"
+            initial={{ y: 0, opacity: 1 }}
+            animate={{ y: -30, opacity: 0 }}
+            transition={{ duration: 1, delay: 0.5 }}
+          >
+            ⭐
+          </motion.div>
+        )}
+        {emoji === '😠' && (
+          <motion.div
+            className="absolute text-red-400"
+            initial={{ y: 0, opacity: 1 }}
+            animate={{ y: -40, opacity: 0 }}
+            transition={{ duration: 1.2, delay: 0.5 }}
+          >
+            ⚡
+          </motion.div>
+        )}
+      </motion.div>
+    </AnimatePresence>
+  )
+
   return (
     <div className={`flex flex-col h-[100dvh] ${isDark ? 'dark bg-gray-900' : 'bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50'}`}>
-      {/* Fixed Header with Aura Glow */}
+      {/* Fixed Header */}
       <header className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-b dark:border-gray-700 shadow-sm z-50">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
@@ -204,17 +219,12 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               
-              {/* Aura Glow Wrapper */}
-              <div className={`relative p-1 rounded-full transition-all duration-500 animate-pulseGlow ${getAuraColor(girl.status, isDark)}`}>
-                <Avatar className="w-12 h-16 border-2 border-pink-200 dark:border-purple-200 flex-shrink-0">
-                  <AvatarImage src={girl.image} alt={girl.name} className="object-cover" />
-                  <AvatarFallback className="bg-pink-100 dark:bg-purple-100 text-pink-600 dark:text-purple-600 font-bold">
-                    {girl.name.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                {/* Typing Particles */}
-                <TypingParticles isTyping={isTyping} />
-              </div>
+              <Avatar className="w-12 h-16 border-2 border-pink-200 dark:border-purple-200 flex-shrink-0">
+                <AvatarImage src={girl.image} alt={girl.name} className="object-cover" />
+                <AvatarFallback className="bg-pink-100 dark:bg-purple-100 text-pink-600 dark:text-purple-600 font-bold">
+                  {girl.name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
               
               <div className="min-w-0 flex-1">
                 <h2 className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'} text-base truncate`}>{girl.name}</h2>
@@ -256,7 +266,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
         {messages.map((message: Message) => (
           <div
             key={message.id}
-            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} relative`}
           >
             <div className={`max-w-[80%] flex gap-2 items-end ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
               {message.sender === 'ai' && (
@@ -265,7 +275,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
                   <AvatarFallback>{girl.name.charAt(0)}</AvatarFallback>
                 </Avatar>
               )}
-              <div className={`p-3 rounded-3xl ${getBubbleClass(message.sender, isDark)} max-w-full break-words shadow-md`}>
+              <div className={`p-3 rounded-3xl ${getBubbleClass(message.sender, isDark)} max-w-full break-words shadow-md relative`}>
                 {message.type === 'image' ? (
                   <img src={message.text} alt="Image" className="max-w-full h-auto rounded-lg" loading="lazy" />
                 ) : (
@@ -287,6 +297,15 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
                 </div>
               </div>
             </div>
+            {/* Emoji Animation */}
+            {message.sender === 'ai' && animatedMessages.has(message.id) && (
+              <EmojiAnimation 
+                messageId={message.id}
+                emoji="😘"  // Detect from message.text
+                x={Math.random() * 100 + 50}
+                y={Math.random() * 50 + 20}
+              />
+            )}
           </div>
         ))}
         
@@ -381,4 +400,4 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       </footer>
     </div>
   )
-      }
+               }
