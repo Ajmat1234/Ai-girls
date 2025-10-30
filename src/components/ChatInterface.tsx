@@ -8,8 +8,6 @@ import { Girl } from '@/data/girls'
 import { useChat } from '@/hooks/useChat'
 import { useAuth } from '@/hooks/useAuth'
 import { uploadImage } from '@/lib/supabase'
-import AnimatedGradient from '../components/AnimatedGradient'
-import MessageBubble from '../components/MessageBubble'
 
 interface ChatInterfaceProps {
   girl: Girl
@@ -103,16 +101,6 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
         .then(() => alert('Chat copied to clipboard!'))
         .catch(() => alert('Share not supported'))
     }
-  }
-
-  const handleMessageTap = (text: string) => {
-    navigator.clipboard.writeText(text)
-      .then(() => alert('Message copied!'))
-      .catch(() => alert('Copy failed!'))
-  }
-
-  const handleTriggerBurn = (id: string) => {
-    console.log('Message burned:', id)
   }
 
   const formatTime = (date: Date) => {
@@ -212,7 +200,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
               >
                 <Share2 className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="sm" className="hover:bg-pink-100 dark:border-gray-700 p-2">
+              <Button variant="ghost" size="sm" className="hover:bg-pink-100 dark:hover:bg-gray-700 p-2">
                 <MoreVertical className="w-5 h-5" />
               </Button>
             </div>
@@ -222,19 +210,41 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
 
       {/* Scrollable Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 pt-20 dark:bg-gray-900 pb-24 min-h-0">
-        {/* Animated Gradient */}
-        <AnimatedGradient />
-
         {messages.map((message: Message) => (
-          <MessageBubble
+          <div
             key={message.id}
-            id={message.id}
-            sender={message.sender}
-            text={message.text}
-            timestamp={message.timestamp}
-            onTriggerBurn={handleTriggerBurn}
-            onCopy={handleMessageTap}
-          />
+            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div className={`max-w-[80%] flex gap-2 items-end ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+              {message.sender === 'ai' && (
+                <Avatar className="w-8 h-8 flex-shrink-0">
+                  <AvatarImage src={girl.image} className="object-cover" />
+                  <AvatarFallback>{girl.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+              )}
+              <div className={`p-3 rounded-3xl ${getBubbleClass(message.sender, isDark)} max-w-full break-words shadow-md`}>
+                {message.type === 'image' ? (
+                  <img src={message.text} alt="Image" className="max-w-full h-auto rounded-lg" loading="lazy" />
+                ) : (
+                  <div 
+                    className={`text-sm ${message.sender === 'user' ? 'text-white' : 'text-gray-900 dark:text-white'}`}
+                    dangerouslySetInnerHTML={{ __html: renderMessageText(message.text) }}
+                  />
+                )}
+                <div className="flex items-center justify-between mt-1">
+                  <span className={`text-xs opacity-75 ${message.sender === 'user' ? 'text-pink-100' : 'text-gray-500 dark:text-gray-400'}`}>
+                    {formatTime(message.timestamp)}
+                  </span>
+                  {message.sender === 'user' && message.status && (
+                    <span className="text-xs opacity-75 ml-2">
+                      {message.status === 'read' ? '✓✓' : message.status === 'delivered' ? '✓✓' : '✓'}
+                    </span>
+                  )}
+                  {message.sender === 'ai' && <span className="text-xs text-blue-500 ml-2">Read</span>}
+                </div>
+              </div>
+            </div>
+          </div>
         ))}
         
         {isTyping && (
@@ -306,7 +316,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
             
             <Button
               onClick={handleSendMessage}
-              disabled={!inputMessage.trim() || isLoading || isTyping}
+              disabled={!inputMessage.trim() || isLoading || isUploading}
               className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white p-3 rounded-lg flex-shrink-0"
             >
               <Send className="w-5 h-5" />
