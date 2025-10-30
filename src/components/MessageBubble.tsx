@@ -61,12 +61,16 @@ export default function MessageBubble({ id, sender, text, timestamp, onTriggerBu
   }
 
   return (
-    <div onPointerDown={handleTap} className={clsx("relative max-w-[80%] break-words p-3 rounded-2xl shadow-md transition-all",
-      sender === "user" ? "ml-auto text-white" : "mr-auto text-gray-900 dark:text-white",
-      isEmotional && "message-emotional message-sent-animate",
-      isFire && "message-fire",
-      isBurned && "message-burned"
-    )}>
+    <div
+      onPointerDown={handleTap}
+      className={clsx(
+        "relative max-w-[80%] break-words p-3 rounded-3xl shadow-md transition-all",
+        sender === "user" ? "ml-auto text-white" : "mr-auto text-gray-900 dark:text-white",
+        isEmotional && "message-emotional message-sent-animate",
+        isFire && "message-fire",
+        isBurned && "message-burned"
+      )}
+    >
       {/* Fire layer */}
       {isFire && (
         <div className="fire-layer">
