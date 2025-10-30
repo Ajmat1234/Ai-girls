@@ -1,11 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'  // <-- ये अलग import
+import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Send, Image, Video, ArrowLeft, MoreVertical, Smile, Moon, Sun } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Girl } from '@/data/girls'
 import { useChat } from '@/hooks/useChat'
 import { useAuth } from '@/hooks/useAuth'
@@ -21,7 +19,7 @@ interface Message {
   text: string
   timestamp: Date
   type: 'text' | 'image'
-  status?: 'sent' | 'delivered' | 'read'  // New: message status
+  status?: 'sent' | 'delivered' | 'read'
 }
 
 export default function ChatInterface({ girl }: ChatInterfaceProps) {
@@ -29,17 +27,39 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
   const { user } = useAuth()
   const { messages, isLoading, isTyping, sendMessage, sendImageMessage } = useChat(girl.name, user?.username)
   const [inputMessage, setInputMessage] = useState('')
-  const [isDark, setIsDark] = useState(false)  // New: Dark mode
+  const [isDark, setIsDark] = useState(false)
+  const [keyboardHeight, setKeyboardHeight] = useState(0)  // New: Keyboard height tracker
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
-  const [showEmoji, setShowEmoji] = useState(false)  // New: Emoji picker (simple)
+  const [showEmoji, setShowEmoji] = useState(false)
 
   useEffect(() => {
     scrollToBottom()
-    // Dark mode apply
     document.documentElement.classList.toggle('dark', isDark)
   }, [messages, isTyping, isDark])
+
+  // New: Keyboard detection for mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.visualViewport) {
+        const vh = window.visualViewport.height
+        const screenHeight = window.screen.height
+        setKeyboardHeight(screenHeight - vh > 0 ? screenHeight - vh : 0)
+      } else {
+        // Fallback for older browsers
+        setKeyboardHeight(window.innerHeight < window.screen.height ? window.screen.height - window.innerHeight : 0)
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    window.visualViewport?.addEventListener('resize', handleResize)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      window.visualViewport?.removeEventListener('resize', handleResize)
+    }
+  }, [])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -98,11 +118,19 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
 
   const getBubbleClass = (sender: 'user' | 'ai', isDark: boolean) => {
     return sender === 'user'
-      ? `bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg`
-      : isDark ? 'bg-gray-700 text-white shadow-lg' : 'bg-white shadow-sm border'
+      ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg rounded-br-md rounded-bl-lg'
+      : isDark ? 'bg-gray-700 text-white shadow-lg rounded-bl-md rounded-br-lg' : 'bg-white shadow-sm border border-gray-200 rounded-bl-md rounded-br-lg'
   }
 
-  // Simple emoji insert (expand if want full picker)
+  // New: Simple Markdown renderer (fix **bold** etc.)
+  const renderMessageText = (text: string) => {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>')  // Bold
+      .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')  // Italic
+      .replace(/`(.*?)`/g, '<code class="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-sm">$1</code>')  // Inline code
+      .replace(/\n/g, '<br />')  // Line breaks
+  }
+
   const insertEmoji = (emoji: string) => {
     setInputMessage(prev => prev + emoji)
     setShowEmoji(false)
@@ -111,7 +139,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
   return (
     <div className={`flex flex-col h-[100dvh] overflow-hidden ${isDark ? 'dark bg-gray-900' : 'bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50'}`}>
       {/* Fixed Header */}
-      <div className="flex-shrink-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-b dark:border-gray-700 shadow-sm z-50">
+      <div className="flex-shrink-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-b dark:border-gray-700 shadow-sm z-50">
         <div className="px-2 sm:px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -124,7 +152,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
                 <ArrowLeft className="w-4 h-4" />
               </Button>
               
-              <Avatar className="w-10 h-[13.33] aspect-[3/4] border-2 border-pink-200 dark:border-purple-200 flex-shrink-0">  {/* 3:4 ratio fixed */}
+              <Avatar className="w-10 h-[13.33] aspect-[3/4] border-2 border-pink-200 dark:border-purple-200 flex-shrink-0">
                 <AvatarImage src={girl.image} alt={girl.name} className="object-cover" />
                 <AvatarFallback className={`bg-pink-100 dark:bg-purple-100 text-pink-600 dark:text-purple-600`}>
                   {girl.name.charAt(0)}
@@ -161,14 +189,13 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       </div>
 
       {/* Scrollable Messages */}
-      <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-2 space-y-3 pt-2 dark:bg-gray-900">
+      <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-2 space-y-3 pt-2 dark:bg-gray-900" style={{ paddingBottom: `${Math.max(keyboardHeight, 0)}px` }}>  {/* Dynamic padding for keyboard */}
         {messages.map((message: Message) => (
           <div
             key={message.id}
             className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}
           >
             <div className={`max-w-[85%] sm:max-w-[75%] flex gap-2 items-end ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-              {/* Avatar for AI messages */}
               {message.sender === 'ai' && (
                 <Avatar className="w-6 h-6 flex-shrink-0">
                   <AvatarImage src={girl.image} className="object-cover" />
@@ -176,18 +203,19 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
                 </Avatar>
               )}
               
-              <div className={`p-3 rounded-2xl ${getBubbleClass(message.sender, isDark)} max-w-full break-words shadow-md`}>
+              <div className={`p-3 rounded-2xl ${getBubbleClass(message.sender, isDark)} max-w-full break-words shadow-md relative`}>
                 {message.type === 'image' ? (
                   <img 
                     src={message.text} 
                     alt="Shared image" 
                     className="max-w-full h-auto rounded-2xl w-full" 
-                    loading="lazy"  // Performance
+                    loading="lazy"
                   />
                 ) : (
-                  <p className={`text-sm whitespace-pre-wrap ${message.sender === 'user' ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
-                    {message.text}
-                  </p>
+                  <div 
+                    className={`text-sm ${message.sender === 'user' ? 'text-white' : 'text-gray-900 dark:text-white'}`}
+                    dangerouslySetInnerHTML={{ __html: renderMessageText(message.text) }}  // Markdown render
+                  />
                 )}
                 <div className="flex items-center justify-between mt-1">
                   <span className={`text-xs opacity-75 ${message.sender === 'user' ? 'text-pink-100' : 'text-gray-500 dark:text-gray-400'}`}>
@@ -198,11 +226,10 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
                       {message.status === 'read' ? '✓✓' : message.status === 'delivered' ? '✓✓' : '✓'}
                     </span>
                   )}
-                  {message.sender === 'ai' && <span className="text-xs text-blue-500 ml-2">Read</span>}  {/* Read receipt */}
+                  {message.sender === 'ai' && <span className="text-xs text-blue-500 ml-2">Read</span>}
                 </div>
               </div>
               
-              {/* Small avatar for user messages */}
               {message.sender === 'user' && (
                 <Avatar className="w-6 h-6 flex-shrink-0">
                   <AvatarImage src={user?.avatar} />
@@ -228,9 +255,15 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Fixed Input */}
-      <div className="flex-shrink-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-t dark:border-gray-700 z-40 pb-[env(safe-area-inset-bottom)]">  {/* Safe area */}
-        <div className="p-2 sm:p-4">
+      {/* Fixed Input - Adjusts with keyboard */}
+      <div 
+        className="flex-shrink-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-t dark:border-gray-700 z-40 transition-all duration-300" 
+        style={{ 
+          paddingBottom: `${Math.max(keyboardHeight + 20, 20)}px`,  // Extra padding for keyboard + safe area
+          transform: `translateY(${keyboardHeight > 0 ? -keyboardHeight : 0}px)`  // Move up with keyboard like Grok
+        }}
+      >
+        <div className="p-2 sm:p-4 relative z-10">
           <div className="flex items-end gap-2">
             <Button
               variant="ghost"
@@ -242,7 +275,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
             </Button>
             
             {showEmoji && (
-              <div className="absolute bottom-16 left-4 bg-white dark:bg-gray-800 border rounded-lg p-2 shadow-lg z-50 flex flex-wrap gap-1 max-w-xs">  {/* Simple emoji grid */}
+              <div className="absolute bottom-16 left-4 bg-white dark:bg-gray-800 border rounded-lg p-2 shadow-lg z-50 flex flex-wrap gap-1 max-w-xs">
                 {['😊', '😂', '❤️', '👍', '🔥'].map(emoji => (
                   <button key={emoji} onClick={() => insertEmoji(emoji)} className="text-2xl hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded">
                     {emoji}
@@ -271,7 +304,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
               <Video className="w-4 h-4" />
             </Button>
             
-            <Textarea  // Changed to Textarea for auto-resize
+            <Textarea
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyDown={handleKeyPress}
@@ -304,4 +337,4 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       </div>
     </div>
   )
-            }
+}
