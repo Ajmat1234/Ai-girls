@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { Button } from '@/components/ui/button'  // <-- ये add किया: Missing Button import
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -337,4 +338,4 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       </div>
     </div>
   )
-}
+                }
