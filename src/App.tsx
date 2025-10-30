@@ -1,28 +1,52 @@
-import { Toaster } from '@/components/ui/sonner';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Index from './pages/Index';
-import Chat from './pages/Chat';
-import Login from './pages/Login';
-import NotFound from './pages/NotFound';
+import React, { Suspense, lazy } from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import ErrorBoundary from './components/ErrorBoundary'
+import LoadingSpinner from './components/LoadingSpinner'
+import './App.css'
 
-const queryClient = new QueryClient();
+// Lazy load components for better performance
+const Home = lazy(() => import('./components/Home').catch(() => ({ 
+  default: () => <div>Home component could not be loaded</div> 
+})))
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/chat/:girlId" element={<Chat />} />
-          <Route path="/auth" element={<Login />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const Chat = lazy(() => import('./components/Chat').catch(() => ({ 
+  default: () => <div>Chat component could not be loaded</div> 
+})))
 
-export default App;
+const NotFound = () => (
+  <div style={{ 
+    display: 'flex', 
+    flexDirection: 'column', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    height: '100vh',
+    textAlign: 'center'
+  }}>
+    <h1>404 - Page Not Found</h1>
+    <p>The page you're looking for doesn't exist.</p>
+    <a href="/" style={{ color: '#007bff', textDecoration: 'none' }}>
+      Go back to Home
+    </a>
+  </div>
+)
+
+function App() {
+  return (
+    <ErrorBoundary>
+      <Router>
+        <div className="App">
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/chat/:girlName" element={<Chat />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </div>
+      </Router>
+    </ErrorBoundary>
+  )
+}
+
+export default App
