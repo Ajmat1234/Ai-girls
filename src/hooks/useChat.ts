@@ -7,6 +7,7 @@ interface Message {
   text: string
   sender: 'user' | 'girl'
   timestamp: Date
+  type?: 'text' | 'image'
   isTyping?: boolean
 }
 
@@ -60,7 +61,8 @@ export const useChat = (girlName: string, username?: string) => {
       id: Date.now().toString(),
       text: welcomeMessages[girlName] || welcomeMessages['Priya'],
       sender: 'girl',
-      timestamp: new Date()
+      timestamp: new Date(),
+      type: 'text'
     }
 
     setMessages([welcomeMsg])
@@ -73,7 +75,8 @@ export const useChat = (girlName: string, username?: string) => {
       id: Date.now().toString(),
       text: text.trim(),
       sender: 'user', 
-      timestamp: new Date()
+      timestamp: new Date(),
+      type: 'text'
     }
 
     setMessages(prev => [...prev, userMessage])
@@ -90,7 +93,8 @@ export const useChat = (girlName: string, username?: string) => {
         id: (Date.now() + 1).toString(),
         text: response,
         sender: 'girl',
-        timestamp: new Date()
+        timestamp: new Date(),
+        type: 'text'
       }
 
       const newMessages = [...messages, userMessage, girlMessage]
@@ -107,7 +111,70 @@ export const useChat = (girlName: string, username?: string) => {
         id: (Date.now() + 1).toString(),
         text: 'Sorry yaar, kuch problem aa gayi... thodi der baad try kro na 😅',
         sender: 'girl',
-        timestamp: new Date()
+        timestamp: new Date(),
+        type: 'text'
+      }
+      setMessages(prev => [...prev, errorMessage])
+    } finally {
+      setIsLoading(false)
+      setIsTyping(false)
+    }
+  }
+
+  const sendImageMessage = async (imageUrl: string) => {
+    if (!imageUrl || isLoading) return
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: imageUrl,
+      sender: 'user', 
+      timestamp: new Date(),
+      type: 'image'
+    }
+
+    setMessages(prev => [...prev, userMessage])
+    setIsLoading(true)
+    setIsTyping(true)
+
+    try {
+      // Simulate typing delay
+      await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1500))
+      
+      // Generate response based on image
+      const imageResponses = [
+        'Wow! 😍 Ye photo bahut beautiful hai... tumne kaha click ki?',
+        'Aww 💕 Ye dekh ke mera dil khush ho gaya... share karne ke liye thanks!',
+        'Amazing! 🤩 Tumhari photography skills kamal ki hai...',
+        'So cute! 😊 Mujhe bhi aise photos lena sikhao na...',
+        'Beautiful! ✨ Ye moment capture krna bohot achha laga...'
+      ]
+      
+      const response = imageResponses[Math.floor(Math.random() * imageResponses.length)]
+      
+      const girlMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: response,
+        sender: 'girl',
+        timestamp: new Date(),
+        type: 'text'
+      }
+
+      const newMessages = [...messages, userMessage, girlMessage]
+      setMessages(newMessages)
+
+      // Save to Supabase only if user is logged in (not guest)
+      if (username && !username.startsWith('guest_')) {
+        await saveChatHistory(username, girlName, newMessages)
+      }
+
+    } catch (error) {
+      console.error('Error sending image message:', error)
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: 'Sorry yaar, image load nahi ho rahi... thodi der baad try kro na 😅',
+        sender: 'girl',
+        timestamp: new Date(),
+        type: 'text'
       }
       setMessages(prev => [...prev, errorMessage])
     } finally {
@@ -126,6 +193,7 @@ export const useChat = (girlName: string, username?: string) => {
     isLoading,
     isTyping,
     sendMessage,
+    sendImageMessage,
     clearChat
   }
 }
