@@ -21,7 +21,7 @@ interface Message {
   text: string
   timestamp: Date
   type: 'text' | 'image'
-  status?: 'sends' | 'delivered' | 'read'
+  status?: 'sent' | 'delivered' | 'read'
 }
 
 export default function ChatInterface({ girl }: ChatInterfaceProps) {
@@ -142,7 +142,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
     return text
       .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>')
       .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-      .replace(/`(.*?)`/g, '<code class="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-sm">$1</code>')
+      .replace(/`(.*?)/g, '<code class="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-sm">$1</code>')
       .replace(/\n/g, '<br />')
   }
 
@@ -162,7 +162,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
                 variant="ghost" 
                 size="sm"
                 onClick={() => navigate('/')}
-                className="hover:bg-pink-100 dark:border-gray-700 p-2"
+                className="hover:bg-pink-100 dark:hover:bg-gray-700 p-2"
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
@@ -210,7 +210,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       </header>
 
       {/* Scrollable Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 pt-20 dark:bg-gray-900 pb-24 min-h-0">
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 pt-20 dark:bg-gray-900 pb-24 min-h-0 relative">
         {/* Animated Gradient */}
         <AnimatedGradient />
 
@@ -225,7 +225,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
             onCopy={handleMessageTap}
           />
         ))}
-
+        
         {isTyping && (
           <div className="flex justify-start">
             <div className={`p-3 rounded-3xl ${getBubbleClass('ai', isDark)} max-w-[75%] shadow-md`}>
@@ -237,7 +237,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
             </div>
           </div>
         )}
-
+        
         <div ref={messagesEndRef} />
       </div>
 
@@ -253,7 +253,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
             >
               <Smile className="w-5 h-5" />
             </Button>
-
+            
             {showEmoji && (
               <div className="absolute bottom-20 left-4 bg-white dark:bg-gray-800 border rounded-lg p-2 shadow-lg z-30 flex flex-wrap gap-1 max-w-xs">
                 {['😊', '😂', '❤️', '👍', '🔥', '😘', '💃', '❤️‍🔥', '😠'].map(emoji => (
@@ -263,7 +263,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
                 ))}
               </div>
             )}
-
+            
             <Button
               variant="ghost"
               size="sm"
@@ -273,7 +273,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
             >
               <Image className="w-5 h-5" />
             </Button>
-
+            
             <Button
               variant="ghost"
               size="sm"
@@ -283,7 +283,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
             >
               <Video className="w-5 h-5" />
             </Button>
-
+            
             <Textarea
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
@@ -292,7 +292,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
               className="flex-1 min-h-[44px] max-h-24 resize-none border border-gray-300 dark:border-gray-600 focus:border-pink-500 dark:focus:border-purple-500 text-sm px-4 py-3 rounded-lg"
               disabled={isLoading || isUploading}
             />
-
+            
             <Button
               onClick={handleSendMessage}
               disabled={!inputMessage.trim() || isLoading || isUploading}
@@ -301,7 +301,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
               <Send className="w-5 h-5" />
             </Button>
           </div>
-
+          
           <input
             ref={fileInputRef}
             type="file"
@@ -309,7 +309,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
             className="hidden"
             onChange={handleFileChange}
           />
-
+          
           {isUploading && (
             <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">Uploading...</p>
           )}
@@ -317,4 +317,4 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       </footer>
     </div>
   )
-}
+                    }
