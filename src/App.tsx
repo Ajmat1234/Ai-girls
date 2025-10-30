@@ -2,9 +2,8 @@ import React, { Suspense, lazy } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import ErrorBoundary from './components/ErrorBoundary'
 import LoadingSpinner from './components/LoadingSpinner'
-import './App.css'
+// CSS इम्पोर्ट हटाया गया (फाइल मौजूद नहीं)
 
-// Lazy load components for better performance
 const Home = lazy(() => import('./components/Home').catch(() => ({ 
   default: () => <div>Home component could not be loaded</div> 
 })))
