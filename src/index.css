@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+@import './styles/animations.css';
 /* Custom styles for your app (optional, but helpful for gradients and themes) */
 @layer base {
   html {
