@@ -8,6 +8,8 @@ import { Girl } from '@/data/girls'
 import { useChat } from '@/hooks/useChat'
 import { useAuth } from '@/hooks/useAuth'
 import { uploadImage } from '@/lib/supabase'
+import AnimatedGradient from '../components/AnimatedGradient'
+import MessageBubble from '../components/MessageBubble'
 
 interface ChatInterfaceProps {
   girl: Girl
@@ -103,7 +105,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
     }
   }
 
-  const handleMessageTap = (text: string, id: string) => {
+  const handleMessageTap = (text: string) => {
     navigator.clipboard.writeText(text)
       .then(() => alert('Message copied!'))
       .catch(() => alert('Copy failed!'))
@@ -210,7 +212,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
               >
                 <Share2 className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="sm" className="hover:bg-pink-100 dark:hover:bg-gray-700 p-2">
+              <Button variant="ghost" size="sm" className="hover:bg-pink-100 dark:border-gray-700 p-2">
                 <MoreVertical className="w-5 h-5" />
               </Button>
             </div>
@@ -326,4 +328,4 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       </footer>
     </div>
   )
-                            }
+                }
