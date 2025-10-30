@@ -8,8 +8,6 @@ import { Girl } from '@/data/girls'
 import { useChat } from '@/hooks/useChat'
 import { useAuth } from '@/hooks/useAuth'
 import { uploadImage } from '@/lib/supabase'
-import AnimatedGradient from './AnimatedGradient'
-import MessageBubble from './MessageBubble'
 
 interface ChatInterfaceProps {
   girl: Girl
@@ -105,7 +103,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
     }
   }
 
-  const handleMessageTap = (text: string) => {
+  const handleMessageTap = (text: string, id: string) => {
     navigator.clipboard.writeText(text)
       .then(() => alert('Message copied!'))
       .catch(() => alert('Copy failed!'))
@@ -142,7 +140,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
     return text
       .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>')
       .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-      .replace(/`(.*?)/g, '<code class="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-sm">$1</code>')
+      .replace(/`(.*?)`/g, '<code class="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-sm">$1</code>')
       .replace(/\n/g, '<br />')
   }
 
@@ -151,9 +149,17 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
     setShowEmoji(false)
   }
 
+  // Aura Glow for Typing (conditional on isTyping)
+  const getTypingAura = () => {
+    if (!isTyping) return ''
+    return isDark 
+      ? 'shadow-[0_0_20px_6px_rgba(255,105,180,0.6)] animate-pulseGlow' 
+      : 'shadow-[0_0_20px_6px_rgba(255,105,180,0.8)] animate-pulseGlow'
+  }
+
   return (
     <div className={`flex flex-col h-[100dvh] ${isDark ? 'dark bg-gray-900' : 'bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50'}`}>
-      {/* Fixed Header */}
+      {/* Fixed Header with Typing Glow */}
       <header className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-b dark:border-gray-700 shadow-sm z-50">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
@@ -167,12 +173,15 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               
-              <Avatar className="w-12 h-16 border-2 border-pink-200 dark:border-purple-200 flex-shrink-0">
-                <AvatarImage src={girl.image} alt={girl.name} className="object-cover" />
-                <AvatarFallback className="bg-pink-100 dark:bg-purple-100 text-pink-600 dark:text-purple-600 font-bold">
-                  {girl.name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
+              {/* Aura Glow Wrapper - Only on Typing */}
+              <div className={`relative p-1 rounded-full transition-all duration-500 ${getTypingAura()}`}>
+                <Avatar className="w-12 h-16 border-2 border-pink-200 dark:border-purple-200 flex-shrink-0">
+                  <AvatarImage src={girl.image} alt={girl.name} className="object-cover" />
+                  <AvatarFallback className="bg-pink-100 dark:bg-purple-100 text-pink-600 dark:text-purple-600 font-bold">
+                    {girl.name.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
               
               <div className="min-w-0 flex-1">
                 <h2 className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'} text-base truncate`}>{girl.name}</h2>
@@ -210,7 +219,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       </header>
 
       {/* Scrollable Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 pt-20 dark:bg-gray-900 pb-24 min-h-0 relative">
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 pt-20 dark:bg-gray-900 pb-24 min-h-0">
         {/* Animated Gradient */}
         <AnimatedGradient />
 
@@ -295,7 +304,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
             
             <Button
               onClick={handleSendMessage}
-              disabled={!inputMessage.trim() || isLoading || isUploading}
+              disabled={!inputMessage.trim() || isLoading || isTyping}
               className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white p-3 rounded-lg flex-shrink-0"
             >
               <Send className="w-5 h-5" />
@@ -317,4 +326,4 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       </footer>
     </div>
   )
-                    }
+                            }
