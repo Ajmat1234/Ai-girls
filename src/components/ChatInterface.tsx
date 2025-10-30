@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Send, Image, Video, ArrowLeft, MoreVertical, Smile, Moon } from 'lucide-react'
+import { Send, Image, Video, ArrowLeft, MoreVertical, Smile, Moon, Sun } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Girl } from '@/data/girls'
 import { useChat } from '@/hooks/useChat'
@@ -114,8 +114,8 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
 
   return (
     <div className={`flex flex-col h-screen ${isDark ? 'dark bg-gray-900' : 'bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50'}`}>
-      {/* Fixed Header */}
-      <header className="flex-shrink-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-b dark:border-gray-700 shadow-sm z-10">
+      {/* Fixed Header - Never moves */}
+      <header className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-b dark:border-gray-700 shadow-sm z-50">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
@@ -162,8 +162,8 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
         </div>
       </header>
 
-      {/* Scrollable Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 pb-24 dark:bg-gray-900">  {/* pb-24 for input space */}
+      {/* Scrollable Messages - Reserve space for header */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 pt-20 dark:bg-gray-900 pb-24">  {/* pt-20 for header, pb-24 for input */}
         {messages.map((message: Message) => (
           <div
             key={message.id}
@@ -217,7 +217,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       </div>
 
       {/* Fixed Input */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-t dark:border-gray-700 z-20 pb-[env(safe-area-inset-bottom)]">
+      <footer className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-t dark:border-gray-700 z-40 pb-[env(safe-area-inset-bottom)]">
         <div className="p-3">
           <div className="flex items-center gap-2">
             <Button
@@ -292,4 +292,4 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       </footer>
     </div>
   )
-}
+                }
