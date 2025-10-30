@@ -23,15 +23,15 @@ export default function ChatPage() {
 
   if (!girl) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-2">Girl not found</h2>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+        <div className="text-center p-4">
+          <h2 className="text-2xl font-semibold mb-2 text-gray-800">Girl not found</h2>
           <p className="text-sm text-gray-500 mb-4">Invalid or missing girl ID.</p>
           <button
-            className="px-4 py-2 rounded bg-indigo-600 text-white"
+            className="px-6 py-3 rounded-lg bg-gradient-to-r from-pink-500 to-purple-600 text-white font-medium hover:from-pink-600 hover:to-purple-700 transition-all"
             onClick={() => navigate("/")}
           >
-            Go back
+            Go back to Home
           </button>
         </div>
       </div>
@@ -39,8 +39,8 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-3xl mx-auto h-screen flex flex-col">
+    <div className="min-h-screen bg-transparent">  {/* Removed bg-gray-50 and h-screen to avoid conflict */}
+      <div className="max-w-4xl mx-auto">  {/* Slightly wider for better mobile */}
         <ChatInterface girl={girl} />
       </div>
     </div>
