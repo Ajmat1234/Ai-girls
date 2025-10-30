@@ -78,16 +78,16 @@ export default function Index() {
           {girls.map((girl) => (
             <Card 
               key={girl.id}
-              className="cursor-pointer hover:shadow-lg transition-all duration-200 border-0 bg-white/80 backdrop-blur-sm hover:scale-[1.02] active:scale-[0.98] min-h-[250px]"  {/* Added min-h for taller cards */}
+              className="cursor-pointer hover:shadow-lg transition-all duration-200 border-0 bg-white/80 backdrop-blur-sm hover:scale-[1.02] active:scale-[0.98] min-h-[250px]"
               onClick={() => handleGirlSelect(girl.id)}
             >
-              <CardContent className="p-2 sm:p-3 flex flex-col h-full">  {/* flex-col h-full for even distribution */}
-                <div className="relative flex-1">  {/* flex-1 to grow for image */}
-                  <Avatar className="w-full aspect-[3/4] rounded-lg h-full">  {/* h-full to fill space */}
+              <CardContent className="p-2 sm:p-3 flex flex-col h-full">
+                <div className="relative flex-1">
+                  <Avatar className="w-full aspect-[3/4] rounded-lg h-full">
                     <AvatarImage 
                       src={girl.image} 
                       alt={girl.name}
-                      className="object-contain"  {/* Changed to contain for full image, no crop */}
+                      className="object-contain"
                     />
                     <AvatarFallback className="bg-pink-100 text-pink-600 text-lg rounded-lg flex items-center justify-center">
                       {girl.name.charAt(0)}
@@ -98,7 +98,7 @@ export default function Index() {
                   <div className={`absolute top-1 right-1 w-3 h-3 rounded-full border-2 border-white ${getStatusColor(girl.status)}`}></div>
                 </div>
                 
-                <div className="mt-2 space-y-1 flex-1">  {/* flex-1 for text space */}
+                <div className="mt-2 space-y-1 flex-1">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-sm sm:text-base text-gray-800 truncate">{girl.name}</h3>
                     <span className="text-xs text-gray-500">{girl.age}</span>
