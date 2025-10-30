@@ -112,7 +112,6 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
   }
 
   const handleTriggerBurn = (id: string) => {
-    // Optional: Log or server call
     console.log('Message burned:', id)
   }
 
@@ -210,11 +209,11 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
         </div>
       </header>
 
-      {/* Scrollable Messages with Gradient */}
+      {/* Scrollable Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 pt-20 dark:bg-gray-900 pb-24 min-h-0 relative">
         {/* Subtle Moving Gradient */}
         <AnimatedGradient />
-        
+
         {messages.map((message: Message) => (
           <MessageBubble
             key={message.id}
@@ -318,4 +317,4 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       </footer>
     </div>
   )
-}
+            }
