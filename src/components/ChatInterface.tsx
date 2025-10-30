@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Send, Image, Video, ArrowLeft, MoreVertical, Smile, Moon, Sun } from 'lucide-react'
+import { Send, Image, Video, ArrowLeft, MoreVertical, Smile, Moon } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Girl } from '@/data/girls'
 import { useChat } from '@/hooks/useChat'
@@ -28,8 +28,6 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
   const { messages, isLoading, isTyping, sendMessage, sendImageMessage } = useChat(girl.name, user?.username)
   const [inputMessage, setInputMessage] = useState('')
   const [isDark, setIsDark] = useState(false)
-  const [keyboardHeight, setKeyboardHeight] = useState(0)
-  const [viewportHeight, setViewportHeight] = useState(window.innerHeight)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
@@ -40,34 +38,8 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
     document.documentElement.classList.toggle('dark', isDark)
   }, [messages, isTyping, isDark])
 
-  // Refined Keyboard Detection (better for Android)
-  useEffect(() => {
-    let initialHeight = window.innerHeight
-    const handleResize = () => {
-      const newHeight = window.innerHeight
-      const newViewportHeight = window.visualViewport ? window.visualViewport.height : newHeight
-      const diff = initialHeight - newViewportHeight
-      setKeyboardHeight(diff > 50 ? diff : 0)  // Threshold to avoid false positives
-      setViewportHeight(newViewportHeight)
-      if (diff > 50) {
-        scrollToBottom()  // Auto-scroll on keyboard open
-      }
-    }
-
-    window.addEventListener('resize', handleResize)
-    window.visualViewport?.addEventListener('resize', handleResize)
-    initialHeight = window.innerHeight
-
-    return () => {
-      window.removeEventListener('resize', handleResize)
-      window.visualViewport?.removeEventListener('resize', handleResize)
-    }
-  }, [])
-
   const scrollToBottom = () => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }, 100)
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
   const handleSendMessage = async () => {
@@ -123,16 +95,15 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
 
   const getBubbleClass = (sender: 'user' | 'ai', isDark: boolean) => {
     return sender === 'user'
-      ? 'bg-gradient-to-r from-pink-500 via-pink-600 to-purple-600 text-white shadow-xl rounded-2xl rounded-br-md'
-      : isDark ? 'bg-gray-700 text-gray-100 shadow-xl rounded-2xl rounded-bl-md' : 'bg-white text-gray-900 shadow-lg border border-gray-200 rounded-2xl rounded-bl-md'
+      ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg rounded-2xl rounded-br-md'
+      : isDark ? 'bg-gray-700 text-white shadow-lg rounded-2xl rounded-bl-md' : 'bg-white shadow-sm border rounded-2xl rounded-bl-md'
   }
 
-  // Markdown renderer
   const renderMessageText = (text: string) => {
     return text
       .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>')
       .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-      .replace(/`(.*?)`/g, '<code class="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-xs font-mono">$1</code>')
+      .replace(/`(.*?)`/g, '<code class="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-sm">$1</code>')
       .replace(/\n/g, '<br />')
   }
 
@@ -142,24 +113,24 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
   }
 
   return (
-    <div className={`flex flex-col h-screen overflow-hidden ${isDark ? 'dark bg-gray-900' : 'bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50'}`}>
+    <div className={`flex flex-col h-screen ${isDark ? 'dark bg-gray-900' : 'bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50'}`}>
       {/* Fixed Header */}
-      <div className="flex-shrink-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-b dark:border-gray-700 shadow-lg z-50">
-        <div className="px-3 py-3">
+      <header className="flex-shrink-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-b dark:border-gray-700 shadow-sm z-10">
+        <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
               <Button 
                 variant="ghost" 
                 size="sm"
                 onClick={() => navigate('/')}
-                className="hover:bg-pink-100 dark:hover:bg-gray-700 p-2 -ml-1"
+                className="hover:bg-pink-100 dark:hover:bg-gray-700 p-2"
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               
-              <Avatar className="w-10 h-[13.33] aspect-[3/4] border-2 border-pink-200 dark:border-purple-200 flex-shrink-0">
+              <Avatar className="w-12 h-16 border-2 border-pink-200 dark:border-purple-200 flex-shrink-0">
                 <AvatarImage src={girl.image} alt={girl.name} className="object-cover" />
-                <AvatarFallback className={`bg-pink-100 dark:bg-purple-100 text-pink-600 dark:text-purple-600 font-bold`}>
+                <AvatarFallback className="bg-pink-100 dark:bg-purple-100 text-pink-600 dark:text-purple-600 font-bold">
                   {girl.name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
@@ -169,9 +140,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full ${getStatusColor(girl.status)}`}></div>
                   <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">{girl.status}</span>
-                  {isTyping && (
-                    <span className="text-xs text-pink-500 dark:text-pink-400 animate-pulse">typing...</span>
-                  )}
+                  {isTyping && <span className="text-xs text-pink-500 dark:text-pink-400 animate-pulse">typing...</span>}
                 </div>
               </div>
             </div>
@@ -191,56 +160,41 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Scrollable Messages - Dynamic padding for keyboard */}
-      <div 
-        className="flex-1 overflow-y-auto px-4 py-3 space-y-4 pt-2 dark:bg-gray-900" 
-        style={{ 
-          paddingBottom: `${keyboardHeight + 20}px`,  // Reserve space for input + keyboard
-          height: `calc(100vh - 80px - ${keyboardHeight}px)`  // Adjust height dynamically
-        }}
-      >
+      {/* Scrollable Messages */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 pb-24 dark:bg-gray-900">  {/* pb-24 for input space */}
         {messages.map((message: Message) => (
           <div
             key={message.id}
-            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in-up`}
+            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div className={`max-w-[80%] flex gap-2 items-end ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-              {/* AI Avatar only */}
               {message.sender === 'ai' && (
-                <Avatar className="w-8 h-8 flex-shrink-0 mt-1">
+                <Avatar className="w-8 h-8 flex-shrink-0">
                   <AvatarImage src={girl.image} className="object-cover" />
-                  <AvatarFallback className="bg-pink-100 text-pink-600 font-bold">{girl.name.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>{girl.name.charAt(0)}</AvatarFallback>
                 </Avatar>
               )}
-              
-              {/* No user avatar - removed "U" */}
-              
-              <div className={`p-4 rounded-2xl ${getBubbleClass(message.sender, isDark)} max-w-full break-words shadow-2xl relative max-w-xs lg:max-w-md`}>
+              <div className={`p-3 rounded-2xl ${getBubbleClass(message.sender, isDark)} max-w-full break-words shadow-md`}>
                 {message.type === 'image' ? (
-                  <img 
-                    src={message.text} 
-                    alt="Shared image" 
-                    className="max-w-full h-auto rounded-xl w-full" 
-                    loading="lazy"
-                  />
+                  <img src={message.text} alt="Image" className="max-w-full h-auto rounded-lg" loading="lazy" />
                 ) : (
                   <div 
-                    className={`text-sm leading-relaxed ${message.sender === 'user' ? 'text-white' : 'text-gray-800 dark:text-gray-100'}`}
+                    className={`text-sm ${message.sender === 'user' ? 'text-white' : 'text-gray-900 dark:text-white'}`}
                     dangerouslySetInnerHTML={{ __html: renderMessageText(message.text) }}
                   />
                 )}
-                <div className="flex items-center justify-between mt-2 pt-1">
-                  <span className={`text-xs opacity-70 ${message.sender === 'user' ? 'text-pink-100' : 'text-gray-500 dark:text-gray-400'}`}>
+                <div className="flex items-center justify-between mt-1">
+                  <span className={`text-xs opacity-75 ${message.sender === 'user' ? 'text-pink-100' : 'text-gray-500 dark:text-gray-400'}`}>
                     {formatTime(message.timestamp)}
                   </span>
                   {message.sender === 'user' && message.status && (
-                    <span className="text-xs opacity-70 ml-2">
+                    <span className="text-xs opacity-75 ml-2">
                       {message.status === 'read' ? '✓✓' : message.status === 'delivered' ? '✓✓' : '✓'}
                     </span>
                   )}
-                  {message.sender === 'ai' && <span className="text-xs text-blue-500 ml-2">Seen</span>}
+                  {message.sender === 'ai' && <span className="text-xs text-blue-500 ml-2">Read</span>}
                 </div>
               </div>
             </div>
@@ -248,12 +202,12 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
         ))}
         
         {isTyping && (
-          <div className="flex justify-start animate-fade-in-up">
-            <div className={`p-4 rounded-2xl ${getBubbleClass('ai', isDark)} max-w-xs shadow-2xl`}>
-              <div className="flex space-x-2">
-                <div className="w-2.5 h-2.5 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce"></div>
-                <div className="w-2.5 h-2.5 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2.5 h-2.5 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+          <div className="flex justify-start">
+            <div className={`p-3 rounded-2xl ${getBubbleClass('ai', isDark)} max-w-[75%] shadow-md`}>
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               </div>
             </div>
           </div>
@@ -262,29 +216,23 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Fixed Input - Moves up with keyboard */}
-      <div 
-        className="flex-shrink-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-t dark:border-gray-700 z-40 transition-all duration-300 ease-in-out"
-        style={{ 
-          transform: `translateY(calc(-100% + ${viewportHeight - keyboardHeight}px))`,  // Precise shift
-          bottom: `${keyboardHeight}px`  // Position above keyboard
-        }}
-      >
-        <div className="p-3 relative z-10">
+      {/* Fixed Input */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-t dark:border-gray-700 z-20 pb-[env(safe-area-inset-bottom)]">
+        <div className="p-3">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowEmoji(!showEmoji)}
-              className="hover:bg-pink-100 dark:hover:bg-gray-700 p-2 rounded-full"
+              className="hover:bg-pink-100 dark:hover:bg-gray-700 p-2"
             >
               <Smile className="w-5 h-5" />
             </Button>
             
             {showEmoji && (
-              <div className="absolute -bottom-20 left-4 bg-white dark:bg-gray-800 border rounded-xl p-3 shadow-xl z-50 flex flex-wrap gap-2 max-w-xs">
-                {['😊', '😂', '❤️', '👍', '🔥', '😘', '🤔'].map(emoji => (
-                  <button key={emoji} onClick={() => insertEmoji(emoji)} className="text-2xl hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded-lg transition-colors">
+              <div className="absolute bottom-20 left-4 bg-white dark:bg-gray-800 border rounded-lg p-2 shadow-lg z-30 flex flex-wrap gap-1 max-w-xs">
+                {['😊', '😂', '❤️', '👍', '🔥'].map(emoji => (
+                  <button key={emoji} onClick={() => insertEmoji(emoji)} className="text-2xl hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded">
                     {emoji}
                   </button>
                 ))}
@@ -295,7 +243,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
               variant="ghost"
               size="sm"
               onClick={handleFileUpload}
-              className="hover:bg-pink-100 dark:hover:bg-gray-700 p-2 rounded-full"
+              className="hover:bg-pink-100 dark:hover:bg-gray-700 p-2"
               disabled={isUploading}
             >
               <Image className="w-5 h-5" />
@@ -305,7 +253,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
               variant="ghost"
               size="sm"
               onClick={handleFileUpload}
-              className="hover:bg-pink-100 dark:hover:bg-gray-700 p-2 rounded-full"
+              className="hover:bg-pink-100 dark:hover:bg-gray-700 p-2"
               disabled={isUploading}
             >
               <Video className="w-5 h-5" />
@@ -316,14 +264,14 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyDown={handleKeyPress}
               placeholder={`Message to ${girl.name}...`}
-              className="flex-1 min-h-[44px] max-h-24 resize-none border-2 border-pink-200 dark:border-purple-200 focus:border-pink-500 dark:focus:border-purple-500 text-sm rounded-xl px-4 py-3 shadow-inner"
+              className="flex-1 min-h-[44px] max-h-24 resize-none border border-gray-300 dark:border-gray-600 focus:border-pink-500 dark:focus:border-purple-500 text-sm px-4 py-3 rounded-lg"
               disabled={isLoading || isUploading}
             />
             
             <Button
               onClick={handleSendMessage}
               disabled={!inputMessage.trim() || isLoading || isUploading}
-              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white p-3 rounded-full shadow-lg flex-shrink-0"
+              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white p-3 rounded-lg flex-shrink-0"
             >
               <Send className="w-5 h-5" />
             </Button>
@@ -338,10 +286,10 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
           />
           
           {isUploading && (
-            <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2 px-2">Uploading...</p>
+            <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">Uploading...</p>
           )}
         </div>
-      </div>
+      </footer>
     </div>
   )
-              }
+}
