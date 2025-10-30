@@ -1,72 +1,86 @@
-import { createClient } from '@supabase/supabase-js'
+import { useState, useCallback } from 'react'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase env vars: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY')
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
-export interface ChatRecord {
+export interface Message {
   id: string
-  user: string
-  girl_name: string
-  chat: string
-  access_key: string
-  created_at: string
+  content: string
+  sender: 'user' | 'ai'
+  timestamp: Date
+  imageUrl?: string
+  videoUrl?: string
 }
 
-export const saveChatHistory = async (user: string, girlName: string, chatHistory: any[]) => {
-  try {
-    const { data, error } = await supabase
-      .from('Table')
-      .upsert({
-        user,
-        girl_name: girlName,
-        chat: JSON.stringify(chatHistory)
-      })
-    
-    if (error) throw error
-    return data
-  } catch (error) {
-    console.error('Error saving chat:', error)
-    return null
-  }
-}
+export const useChat = () => {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [isLoading, setIsLoading] = useState(false)
 
-export const getChatHistory = async (user: string, girlName: string) => {
-  try {
-    const { data, error } = await supabase
-      .from('Table')
-      .select('*')
-      .eq('user', user)
-      .eq('girl_name', girlName)
-      .single()
-    
-    if (error) throw error
-    return data ? JSON.parse(data.chat) : []
-  } catch (error) {
-    console.error('Error getting chat:', error)
-    return []
-  }
-}
+  const sendMessage = useCallback(async (content: string) => {
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content,
+      sender: 'user',
+      timestamp: new Date()
+    }
 
-export const createUser = async (user: string) => {
-  try {
-    const { data, error } = await supabase
-      .from('Table')
-      .insert({
-        user,
-        girl_name: '',
-        chat: '[]'
-      })
-    
-    if (error) throw error
-    return data
-  } catch (error) {
-    console.error('Error creating user:', error)
-    return null
+    setMessages(prev => [...prev, userMessage])
+    setIsLoading(true)
+
+    try {
+      // Simulate AI response
+      setTimeout(() => {
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: `AI response to: ${content}`,
+          sender: 'ai',
+          timestamp: new Date()
+        }
+        setMessages(prev => [...prev, aiMessage])
+        setIsLoading(false)
+      }, 1000)
+    } catch (error) {
+      console.error('Error sending message:', error)
+      setIsLoading(false)
+    }
+  }, [])
+
+  const sendImageMessage = useCallback(async (imageUrl: string, caption?: string) => {
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content: caption || 'Image sent',
+      sender: 'user',
+      timestamp: new Date(),
+      imageUrl
+    }
+
+    setMessages(prev => [...prev, userMessage])
+    setIsLoading(true)
+
+    try {
+      // Simulate AI response to image
+      setTimeout(() => {
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: 'I can see your image! That looks interesting.',
+          sender: 'ai',
+          timestamp: new Date()
+        }
+        setMessages(prev => [...prev, aiMessage])
+        setIsLoading(false)
+      }, 1500)
+    } catch (error) {
+      console.error('Error sending image message:', error)
+      setIsLoading(false)
+    }
+  }, [])
+
+  const clearMessages = useCallback(() => {
+    setMessages([])
+  }, [])
+
+  return {
+    messages,
+    isLoading,
+    sendMessage,
+    sendImageMessage,
+    clearMessages
   }
 }
