@@ -17,3 +17,6 @@
     @apply bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50;
   }
 }
+body {
+  @apply bg-gray-100 text-gray-900;
+}
