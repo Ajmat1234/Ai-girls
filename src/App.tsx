@@ -1,7 +1,6 @@
 import React, { Suspense, lazy } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import ErrorBoundary from './components/ErrorBoundary'
-import LoadingSpinner from './components/LoadingSpinner'
 
 const Home = lazy(() =>
   import('./pages/Index').catch(() => ({
