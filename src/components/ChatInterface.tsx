@@ -292,4 +292,4 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       </footer>
     </div>
   )
-                }
+            }
