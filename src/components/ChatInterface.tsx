@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Send, Image, Video, ArrowLeft, MoreVertical, Smile, Moon, Sun, Share2 } from 'lucide-react'
-import { motion } from 'framer-motion'  // For butterfly
+import { motion, AnimatePresence } from 'framer-motion'  // For emoji animations
 import { useNavigate } from 'react-router-dom'
 import { Girl } from '@/data/girls'
 import { useChat } from '@/hooks/useChat'
@@ -21,56 +21,7 @@ interface Message {
   timestamp: Date
   type: 'text' | 'image'
   status?: 'sent' | 'delivered' | 'read'
-}
-
-// Butterfly Component (तेरा code integrated)
-const Butterfly = () => {
-  const [positions, setPositions] = useState([{
-    x: Math.random() * window.innerWidth - window.innerWidth / 2,
-    y: Math.random() * window.innerHeight - window.innerHeight / 2,
-  }])
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPositions(prev => [...prev.slice(-3), {
-        x: Math.random() * window.innerWidth - window.innerWidth / 2,
-        y: Math.random() * window.innerHeight - window.innerHeight / 2,
-      }])
-    }, 1500)
-
-    return () => clearInterval(interval)
-  }, [])
-
-  const randomTime = () => 4 + Math.random() * 4
-
-  return (
-    <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-      {positions.map((pos, i) => (
-        <motion.div
-          key={i}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ 
-            x: pos.x, 
-            y: pos.y,
-            opacity: 1, 
-            scale: 1 
-          }}
-          transition={{ duration: randomTime(), ease: "easeInOut" }}
-          className="absolute"
-        >
-          <div className="text-3xl animate-pulse">🦋</div>
-          <motion.div
-            className="absolute left-1/2 top-full -translate-x-1/2 text-pink-400 dark:text-purple-400"
-            initial={{ opacity: 1, scale: 1 }}
-            animate={{ opacity: 0, scale: 0 }}
-            transition={{ duration: 1.8, ease: "easeOut" }}
-          >
-            ✨
-          </motion.div>
-        </motion.div>
-      ))}
-    </div>
-  )
+  animatedEmoji?: string  // New: Track animated emoji
 }
 
 export default function ChatInterface({ girl }: ChatInterfaceProps) {
@@ -142,13 +93,12 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       try {
         await navigator.share({
           title: `Chat with ${girl.name}`,
-          text: messages.slice(-5).map(m => `${m.sender}: ${m.text}`).join('\n'),  // Last 5 messages as text
+          text: messages.slice(-5).map(m => `${m.sender}: ${m.text}`).join('\n'),
         })
       } catch (error) {
         console.error('Share failed', error)
       }
     } else {
-      // Fallback: Copy to clipboard or alert
       navigator.clipboard.writeText(`Chat with ${girl.name}\n${messages.slice(-5).map(m => `${m.sender}: ${m.text}`).join('\n')}`)
         .then(() => alert('Chat copied to clipboard!'))
         .catch(() => alert('Share not supported'))
@@ -191,10 +141,72 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
     setShowEmoji(false)
   }
 
+  // Detect emoji in AI message and trigger animation
+  useEffect(() => {
+    messages.forEach((message, index) => {
+      if (message.sender === 'ai' && message.type === 'text' && !message.animatedEmoji) {
+        const emojiMatch = message.text.match(/[\u{1F600}-\u{1F64F}]/gu)  // Unicode emoji range
+        if (emojiMatch) {
+          const emoji = emojiMatch[0]
+          setTimeout(() => {
+            // Update message with animation flag (in real, use state or ref)
+            console.log(`Animating emoji: ${emoji}`)  // Dummy for now, real animation below
+          }, 1000)
+        }
+      }
+    })
+  }, [messages])
+
+  // Emoji Animation Component (per message)
+  const EmojiAnimation = ({ emoji, x, y }: { emoji: string; x: number; y: number }) => (
+    <AnimatePresence>
+      <motion.div
+        className="absolute z-10 pointer-events-none"
+        initial={{ scale: 0, opacity: 0, rotate: 0 }}
+        animate={{ scale: 1.5, opacity: 1, rotate: 360 }}
+        exit={{ scale: 0, opacity: 0 }}
+        transition={{ duration: 1, ease: "easeOut" }}
+        style={{ left: x, top: y }}
+      >
+        <span className="text-2xl">{emoji}</span>
+        {/* Heart particles for kiss, etc. */}
+        {emoji === '😘' && (
+          <motion.div
+            className="absolute text-pink-400"
+            initial={{ y: 0, opacity: 1 }}
+            animate={{ y: -50, opacity: 0 }}
+            transition={{ duration: 1.5, delay: 0.5 }}
+          >
+            💖
+          </motion.div>
+        )}
+        {emoji === '😂' && (
+          <motion.div
+            className="absolute text-yellow-400"
+            initial={{ y: 0, opacity: 1 }}
+            animate={{ y: -30, opacity: 0 }}
+            transition={{ duration: 1, delay: 0.5 }}
+          >
+            ⭐
+          </motion.div>
+        )}
+        {emoji === '😠' && (
+          <motion.div
+            className="absolute text-red-400"
+            initial={{ y: 0, opacity: 1 }}
+            animate={{ y: -40, opacity: 0 }}
+            transition={{ duration: 1.2, delay: 0.5 }}
+          >
+            ⚡
+          </motion.div>
+        )}
+        {/* Add more for other emojis */}
+      </motion.div>
+    </AnimatePresence>
+  )
+
   return (
     <div className={`flex flex-col h-[100dvh] ${isDark ? 'dark bg-gray-900' : 'bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50'}`}>
-      <Butterfly />  {/* Butterfly animation added */}
-
       {/* Fixed Header */}
       <header className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-b dark:border-gray-700 shadow-sm z-50">
         <div className="px-4 py-3">
@@ -252,11 +264,12 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       </header>
 
       {/* Scrollable Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 pt-20 dark:bg-gray-900 pb-24 min-h-0">
-        {messages.map((message: Message) => (
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 pt-20 dark:bg-gray-900 pb-24 min-h-0 relative">  {/* relative for animations */}
+        {messages.map((message: Message, index) => (
           <div
             key={message.id}
-            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} relative`}
+            ref={message.sender === 'ai' ? messagesEndRef : null}
           >
             <div className={`max-w-[80%] flex gap-2 items-end ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
               {message.sender === 'ai' && (
@@ -265,7 +278,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
                   <AvatarFallback>{girl.name.charAt(0)}</AvatarFallback>
                 </Avatar>
               )}
-              <div className={`p-3 rounded-3xl ${getBubbleClass(message.sender, isDark)} max-w-full break-words shadow-md`}>
+              <div className={`p-3 rounded-3xl ${getBubbleClass(message.sender, isDark)} max-w-full break-words shadow-md relative`}>
                 {message.type === 'image' ? (
                   <img src={message.text} alt="Image" className="max-w-full h-auto rounded-lg" loading="lazy" />
                 ) : (
@@ -287,6 +300,14 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
                 </div>
               </div>
             </div>
+            {/* Emoji Animation for AI messages */}
+            {message.sender === 'ai' && message.type === 'text' && (
+              <EmojiAnimation 
+                emoji="😘"  // Detect from message.text in real, dummy for now
+                x={Math.random() * 100}  // Random position relative to bubble
+                y={Math.random() * 50} 
+              />
+            )}
           </div>
         ))}
         
@@ -320,7 +341,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
             
             {showEmoji && (
               <div className="absolute bottom-20 left-4 bg-white dark:bg-gray-800 border rounded-lg p-2 shadow-lg z-30 flex flex-wrap gap-1 max-w-xs">
-                {['😊', '😂', '❤️', '👍', '🔥', '😘', '💃', '❤️‍🔥', '😠'].map(emoji => (  // More emojis: kiss, dance, romantic, angry, laugh, smile
+                {['😊', '😂', '❤️', '👍', '🔥', '😘', '💃', '❤️‍🔥', '😠'].map(emoji => (
                   <button key={emoji} onClick={() => insertEmoji(emoji)} className="text-2xl hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded">
                     {emoji}
                   </button>
@@ -381,4 +402,4 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       </footer>
     </div>
   )
-}
+    }
