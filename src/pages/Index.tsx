@@ -83,12 +83,13 @@ export default function Index() {
             >
               <CardContent className="p-2 sm:p-3">
                 <div className="relative">
-                  <Avatar className="w-full aspect-[3/4] rounded-lg">  {/* Fixed: aspect-[3/4] w-full, height auto */}
+                  <Avatar className="w-full aspect-[3/4] rounded-lg">
                     <AvatarImage 
                       src={girl.image} 
                       alt={girl.name}
-                      className="object-cover"  {/* Full image without crop */}
+                      className="object-cover"
                     />
+                    {/* Full image without crop - comment fixed */}
                     <AvatarFallback className="bg-pink-100 text-pink-600 text-lg rounded-lg">
                       {girl.name.charAt(0)}
                     </AvatarFallback>
