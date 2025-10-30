@@ -38,15 +38,6 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
     document.documentElement.classList.toggle('dark', isDark)
   }, [messages, isTyping, isDark])
 
-  // Auto-scroll on keyboard resize (ChatGPT's alternative)
-  useEffect(() => {
-    const handleResize = () => {
-      scrollToBottom()
-    }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -122,8 +113,8 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
   }
 
   return (
-    <div className={`flex flex-col h-[100dvh] ${isDark ? 'dark bg-gray-900' : 'bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50'}`}>  {/* 100dvh fix */}
-      {/* Fixed Header */}
+    <div className={`flex flex-col h-screen ${isDark ? 'dark bg-gray-900' : 'bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50'}`}>
+      {/* Fixed Header - Never moves */}
       <header className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-b dark:border-gray-700 shadow-sm z-50">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
@@ -171,8 +162,8 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
         </div>
       </header>
 
-      {/* Scrollable Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 pt-20 pb-[100px] dark:bg-gray-900 min-h-0">  {/* pb-[100px] for input reserve */}
+      {/* Scrollable Messages - Reserve space for header */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 pt-20 dark:bg-gray-900 pb-24">  {/* pt-20 for header, pb-24 for input */}
         {messages.map((message: Message) => (
           <div
             key={message.id}
@@ -226,7 +217,7 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       </div>
 
       {/* Fixed Input */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-t dark:border-gray-700 z-40" style={{ height: 'auto', paddingBottom: 'env(safe-area-inset-bottom)' }}>  {/* Extra safety */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-t dark:border-gray-700 z-40 pb-[env(safe-area-inset-bottom)]">
         <div className="p-3">
           <div className="flex items-center gap-2">
             <Button
@@ -301,4 +292,4 @@ export default function ChatInterface({ girl }: ChatInterfaceProps) {
       </footer>
     </div>
   )
-            }
+                                        }
