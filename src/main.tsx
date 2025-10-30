@@ -2,7 +2,7 @@ import React, { Suspense, lazy } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import ErrorBoundary from './components/ErrorBoundary'
 import LoadingSpinner from './components/LoadingSpinner'
-import './App.css'
+import './App.tsx'
 
 // Lazy load components for better performance
 const Home = lazy(() => import('./components/Home').catch(() => ({ 
