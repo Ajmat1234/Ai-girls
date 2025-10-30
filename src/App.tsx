@@ -15,17 +15,7 @@ const Chat = lazy(() =>
 )
 
 const NotFound = () => (
-  <div
-    style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: '100vh',
-      textAlign: 'center',
-      fontFamily: 'sans-serif',
-    }}
-  >
+  <div style={{ textAlign: 'center', paddingTop: '50px' }}>
     <h1>404</h1>
     <p>Page Not Found</p>
   </div>
@@ -35,7 +25,7 @@ function App() {
   return (
     <Router>
       <ErrorBoundary>
-        <Suspense fallback={<LoadingSpinner />}>
+        <Suspense fallback={<div>Loading...</div>}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/chat" element={<Chat />} />
