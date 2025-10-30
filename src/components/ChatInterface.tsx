@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input, Textarea } from '@/components/ui/input'  // Textarea for multi-line
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'  // <-- ये अलग import
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Send, Image, Video, ArrowLeft, MoreVertical, Smile, Moon, Sun } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
